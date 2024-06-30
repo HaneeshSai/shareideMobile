@@ -2,6 +2,9 @@ import { StatusBar } from "expo-status-bar";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import { Link, Redirect, router } from "expo-router";
 import Swiper from "react-native-swiper";
+import { select } from "../utils/dbServices";
+import { useEffect } from "react";
+import { useStore } from "zustand";
 const data = [
   {
     img: require("../assets/images/one.png"),
@@ -26,6 +29,18 @@ const data = [
 ];
 
 export default function App() {
+  const fetchUser = async () => {
+    try {
+      const params = {
+        table: "user",
+      };
+      const user = await select(params);
+      return user;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <View className="flex-1 items-center justify-center bg-main">
       <Swiper
@@ -71,7 +86,15 @@ export default function App() {
             <Text className="text-[14px] font-montmed text-center">{e.l}</Text>
             {i === data.length - 1 ? (
               <TouchableOpacity
-                onPress={() => router.push("welcome")}
+                onPress={async () => {
+                  const user = await fetchUser();
+
+                  if (user.length > 0) {
+                    router.push("(dashboard)/(tabs)/Registered");
+                  } else {
+                    router.push("welcome");
+                  }
+                }}
                 className="bg-primary h-10 w-full  flex items-center relative top-5 justify-center rounded-full"
               >
                 <Text className="text-white font-montSemi text-[20px]">

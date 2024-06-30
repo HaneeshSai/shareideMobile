@@ -1,9 +1,13 @@
-import React from "react";
-import { SplashScreen, Stack } from "expo-router";
-import { TouchableOpacity, View } from "react-native";
+import React, { useEffect } from "react";
+import { Stack, router } from "expo-router";
+import { Image, Text, TextInput, TouchableOpacity, View } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import CustomtextInput from "../../components/textInput";
+import { userStore } from "../../store/userStore";
+import axios from "axios";
 
 const DashboardLayout = () => {
+  const { pickUp, setPickUp } = userStore();
   return (
     <>
       <Stack>
@@ -22,6 +26,75 @@ const DashboardLayout = () => {
               <View className="flex flex-row items-center justify-center gap-4">
                 <TouchableOpacity>
                   <Ionicons name="search" size={32} color="black" />
+                </TouchableOpacity>
+              </View>
+            ),
+          }}
+        />
+        <Stack.Screen
+          name="SearchInput"
+          options={{
+            headerShown: true,
+            headerTitle: "",
+            headerTransparent: true,
+          }}
+        />
+        <Stack.Screen
+          name="(tabs)"
+          options={{
+            headerShown: true,
+            headerTitle: "",
+            headerTransparent: true,
+            headerLeft: () => (
+              <TouchableOpacity
+                className="bg-white p-1 rounded-full"
+                style={{
+                  elevation: 5,
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.8,
+                  shadowRadius: 2,
+                }}
+              >
+                <Ionicons name="menu" size={28} color="#E85F69" />
+              </TouchableOpacity>
+            ),
+            headerRight: () => (
+              <View className="flex flex-row items-center justify-center gap-4">
+                <View className="bg-white rounded-full">
+                  <TouchableOpacity
+                    onPress={() => router.push("(dashboard)/SearchInput")}
+                    style={{
+                      elevation: 5,
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: 0.8,
+                      shadowRadius: 2,
+                    }}
+                    className="w-[230px] flex flex-row items-center justify-between px-3 py-1 rounded-full bg-white"
+                  >
+                    <Text
+                      numberOfLines={1}
+                      className={`font-montSemi py-1 ${
+                        pickUp === null ? "opacity-30" : "opacity-100"
+                      } px-2 flex-1`}
+                    >
+                      {pickUp !== null
+                        ? pickUp.display_address
+                        : "Your Pick Up"}
+                    </Text>
+                    <Image
+                      source={require("../../assets/icons/searchPin.png")}
+                      className="h-5 w-5"
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity>
+                  <Image
+                    source={require("../../assets/icons/saved.png")}
+                    className="h-6 w-6"
+                  />
                 </TouchableOpacity>
               </View>
             ),
