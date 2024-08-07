@@ -125,18 +125,6 @@ const FindRide = () => {
 
       <View className="flex mx-14 my-4 flex-row justify-between">
         <TouchableOpacity
-          onPress={() => setSelected(0)}
-          className="flex flex-col items-center"
-        >
-          <Image
-            source={require("../../../assets/images/boy.png")}
-            className="h-12 w-12"
-          />
-          {selected === 0 ? (
-            <View className="h-1 rounded-full bg-primary w-10"></View>
-          ) : null}
-        </TouchableOpacity>
-        <TouchableOpacity
           onPress={() => setSelected(1)}
           className="flex flex-col items-center"
         >
@@ -145,6 +133,18 @@ const FindRide = () => {
             className="h-12 w-12"
           />
           {selected === 1 ? (
+            <View className="h-1 rounded-full bg-primary w-10"></View>
+          ) : null}
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => setSelected(0)}
+          className="flex flex-col items-center"
+        >
+          <Image
+            source={require("../../../assets/images/boy.png")}
+            className="h-12 w-12"
+          />
+          {selected === 0 ? (
             <View className="h-1 rounded-full bg-primary w-10"></View>
           ) : null}
         </TouchableOpacity>

@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Modal, Image } from "react-native";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { userStore } from "../../store/userStore";
@@ -9,15 +9,43 @@ const Otp = () => {
   const { phone } = userStore();
   const [ready, setReady] = useState(false);
   const [otp, setOtp] = useState("");
+  const [success, setSucces] = useState(true);
 
   const onSubmit = async () => {
     if (otp.length > 3) {
+      
       router.push("(dashboard)/unRegistered");
     }
   };
 
   return (
     <SafeAreaView className="px-5 flex flex-col py-5 h-full bg-main">
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={success}
+        onRequestClose={() => success(false)}
+      >
+        <View className="h-full bg-[#ffffffab]">
+          <View className="bg-[#50AD6A] mx-1 flex flex-col items-center py-4 h-[80%] rounded-lg my-[40%] ">
+            <View className="bg-white p-4 rounded-full my-10">
+              <Image
+                source={require("../../assets/icons/greentick.png")}
+                className="h-20 w-20 relative right-0.5"
+              />
+            </View>
+            <Text className="text-white font-montSemi my-4 text-xl text-center">
+              Authenticated Successfully
+            </Text>
+
+            <TouchableOpacity>
+              <Text className="text-white font-montSemi ">
+                Redirecting to Home Page
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
       <Text className="mt-36 text-2xl font-montBold">Verify Number</Text>
       <Text className="font-montmed ">
         We have just send an OTP to the mobile Number

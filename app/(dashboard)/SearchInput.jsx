@@ -1,8 +1,16 @@
-import { View, Text, Image, TextInput, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  TextInput,
+  TouchableOpacity,
+  Touchable,
+} from "react-native";
 import React, { useState, useEffect, useCallback } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import axios from "axios";
 import { userStore } from "../../store/userStore";
+import { router } from "expo-router";
 
 function debounce(func, wait) {
   let timeout;
@@ -15,12 +23,19 @@ function debounce(func, wait) {
 const SearchInput = () => {
   const [searchResults, setSeachResults] = useState([]);
   const [search, setSearch] = useState("");
-  const { pickUp, setPickUp } = userStore();
+  const {
+    pickUp,
+    setPickUp,
+    destination,
+    setDestination,
+    searchDestination,
+    setSearchDestination,
+  } = userStore();
 
   const autoComplete = useCallback(async (query) => {
     try {
       const response = await axios.get(
-        `https://api.locationiq.com/v1/autocomplete?key=pk.01d00380bf78099702d0e45211664b82&q=${query}&limit=5&dedupe=1&`
+        `https://api.locationiq.com/v1/autocomplete?key=pk.01d00380bf78099702d0e45211664b82&q=${query}&limit=6&dedupe=1&`
       );
       setSeachResults(response.data);
     } catch (error) {
@@ -45,7 +60,9 @@ const SearchInput = () => {
 
   return (
     <SafeAreaView className="px-5 py-10 h-full bg-[#FFF5F5]">
-      <Text className="font-montSemi text-2xl mx-2 my-5">Pickup</Text>
+      <Text className="font-montSemi text-2xl mx-2 my-5">
+        {searchDestination ? "Destination" : "Pickup"}
+      </Text>
       <View
         style={{
           elevation: 6,
@@ -57,7 +74,14 @@ const SearchInput = () => {
             source={require("../../assets/icons/rec.png")}
             className="h-5 w-5"
           />
-          {pickUp !== null && pickUp !== "" ? (
+          {searchDestination && destination ? (
+            <Text
+              numberOfLines={1}
+              className="font-montSemi py-[5px] px-0.5 w-[80%]"
+            >
+              {destination.display_address}
+            </Text>
+          ) : !searchDestination && pickUp ? (
             <Text
               numberOfLines={1}
               className="font-montSemi py-[5px] px-0.5 w-[80%]"
@@ -69,7 +93,9 @@ const SearchInput = () => {
               value={search}
               onChangeText={(e) => setSearch(e)}
               className="font-montSemi w-[80%]"
-              placeholder="Your Pickup Location"
+              placeholder={`Your ${
+                searchDestination ? "Destination" : "Pickup"
+              } Location`}
               placeholderTextColor="rgba(0, 0, 0, 0.2)"
             />
           )}
@@ -81,7 +107,7 @@ const SearchInput = () => {
       </View>
       <View className="flex flex-row">
         <TouchableOpacity className="mx-2 bg-primary px-3 py-1 rounded-lg my-4">
-          <Text className="text-lg font-montSemi text-white text-center">
+          <Text className="text-[15px] font-montSemi text-white text-center">
             Select on Map
           </Text>
         </TouchableOpacity>
@@ -90,13 +116,18 @@ const SearchInput = () => {
             elevation: 8,
           }}
           onPress={() => {
-            setPickUp(null);
+            if (searchDestination) {
+              setDestination(null);
+            } else {
+              setPickUp(null);
+            }
+
             setSearch("");
           }}
           className="mx-2 border-[1px] border-slate-500 bg-white px-3 py-1 rounded-lg my-4"
         >
-          <Text className="text-lg font-montSemi text-black text-center">
-            Clear Pickup
+          <Text className="text-[15px] font-montSemi text-black text-center">
+            Clear {searchDestination ? "Destination" : "Pickup"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -105,7 +136,13 @@ const SearchInput = () => {
         {search.length > 1 && searchResults.length > 1
           ? searchResults.map((e, i) => (
               <TouchableOpacity
-                onPress={() => setPickUp(e)}
+                onPress={() => {
+                  if (searchDestination) {
+                    setDestination(e);
+                  } else {
+                    setPickUp(e);
+                  }
+                }}
                 key={i}
                 style={{ elevation: 7 }}
                 className="bg-white rounded-lg px-3 py-2 my-1.5"
@@ -118,6 +155,17 @@ const SearchInput = () => {
             ))
           : null}
       </View>
+      <TouchableOpacity
+        onPress={() => {
+          setSearchDestination(false);
+          router.back();
+        }}
+        className="w-[90%] mx-[5%] py-1 my-5 bg-primary rounded-lg"
+      >
+        <Text className="text-white font-montSemi text-lg text-center">
+          Confirm Location
+        </Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };

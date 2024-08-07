@@ -156,7 +156,7 @@ const Registered = () => {
           zIndex: 20,
         }}
       >
-        <View className="h-full bg-[#FBEDED] rounded-tl-3xl z-20 -mt-2 rounded-tr-3xl">
+        <View className="h-full bg-[#FBEDED] rounded-tl-3xl z-20 rounded-tr-3xl">
           <View
             style={[
               styles.divider,
@@ -164,16 +164,16 @@ const Registered = () => {
             ]}
             {...panResponder.panHandlers}
           ></View>
-          <Text className="font-montSemi ml-4 mb-2 text-xl">
-            Riders Near You
-          </Text>
+          <Text className="font-montSemi ml-4 text-xl">Riders Near You</Text>
           <View className="relative flex items-center flex-col">
-            <ScrollView className="w-full mb-[145px]">
+            <ScrollView className="w-full mb-[110px]">
               {riders.map((e, i) => (
                 <View
                   key={i}
                   style={{ elevation: 5 }}
-                  className="flex w-[96%] relative left-4 gap-2 h-16 bg-white my-1 rounded-xl items-center pb-2 flex-row"
+                  className={`flex w-[96%] relative left-4 gap-2 h-16 bg-white my-1 rounded-xl items-center pb-2 flex-row ${
+                    i === riders.length - 1 ? "mb-5" : ""
+                  }`}
                 >
                   <Image
                     source={

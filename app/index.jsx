@@ -2,9 +2,10 @@ import { StatusBar } from "expo-status-bar";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import { Link, Redirect, router } from "expo-router";
 import Swiper from "react-native-swiper";
-import { select } from "../utils/dbServices";
+import { select, createDb } from "../utils/dbServices";
 import { useEffect } from "react";
-import { useStore } from "zustand";
+import { userStore } from "../store/userStore";
+import Toast from "react-native-toast-message";
 const data = [
   {
     img: require("../assets/images/one.png"),
@@ -29,20 +30,22 @@ const data = [
 ];
 
 export default function App() {
+  const { user, setUser } = userStore();
   const fetchUser = async () => {
     try {
-      const params = {
-        table: "user",
-      };
-      const user = await select(params);
-      return user;
+      createDb();
     } catch (error) {
       console.log(error);
     }
   };
 
+  useEffect(() => {
+    fetchUser();
+  }, []);
+
   return (
     <View className="flex-1 items-center justify-center bg-main">
+      <Toast />
       <Swiper
         loop={false}
         autoplay={true}
@@ -86,14 +89,8 @@ export default function App() {
             <Text className="text-[14px] font-montmed text-center">{e.l}</Text>
             {i === data.length - 1 ? (
               <TouchableOpacity
-                onPress={async () => {
-                  const user = await fetchUser();
-
-                  if (user.length > 0) {
-                    router.push("(dashboard)/(tabs)/Registered");
-                  } else {
-                    router.push("welcome");
-                  }
+                onPress={() => {
+                  router.push("welcome");
                 }}
                 className="bg-primary h-10 w-full  flex items-center relative top-5 justify-center rounded-full"
               >

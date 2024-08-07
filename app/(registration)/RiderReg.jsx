@@ -46,7 +46,7 @@ const RiderReg = () => {
   const [contact2, setContact2] = useState("");
   const [vehicle, setVehicle] = useState("");
 
-  const { phone, setSubmittedModal } = userStore();
+  const { phone, setSubmittedModal, setUser } = userStore();
 
   const onSubmit = async () => {
     try {
@@ -65,12 +65,13 @@ const RiderReg = () => {
       };
 
       const response = await axios.post(
-        `http://192.168.1.14:3000/auth/registerrider`,
+        `http://192.168.1.16:3000/auth/registerrider`,
         { data: params.data }
       );
 
       if (response.data.message === "ok") {
         await insert(params);
+        setUser(response.data.user);
         setSubmittedModal(true);
       }
     } catch (error) {
@@ -99,6 +100,7 @@ const RiderReg = () => {
           <CustomtextInput
             onchange={setAge}
             value={age}
+            type={"numeric"}
             placeholder={"Enter your age"}
           />
         </View>
@@ -140,12 +142,14 @@ const RiderReg = () => {
             <CustomtextInput
               onchange={setContact1}
               value={contact1}
+              type={"numeric"}
               placeholder="Contact #1"
             />
           </View>
           <CustomtextInput
             onchange={setContact2}
             value={contact2}
+            type={"numeric"}
             placeholder="Contact #2"
           />
         </View>

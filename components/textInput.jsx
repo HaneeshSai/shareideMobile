@@ -1,7 +1,7 @@
 import { View, Text, TextInput } from "react-native";
 import React from "react";
 
-const CustomtextInput = ({ onchange, value, placeholder }) => {
+const CustomtextInput = ({ onchange, type, value, placeholder }) => {
   return (
     <View
       style={{
@@ -23,6 +23,7 @@ const CustomtextInput = ({ onchange, value, placeholder }) => {
     >
       <TextInput
         onChangeText={onchange}
+        keyboardType={type}
         value={value}
         placeholder={placeholder}
         className="font-montSemi text-black w-full text-lg"

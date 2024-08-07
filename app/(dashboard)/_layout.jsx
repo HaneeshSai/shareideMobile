@@ -7,7 +7,7 @@ import { userStore } from "../../store/userStore";
 import axios from "axios";
 
 const DashboardLayout = () => {
-  const { pickUp, setPickUp } = userStore();
+  const { pickUp, setPickUp, user, setSearchDestination } = userStore();
   return (
     <>
       <Stack>
@@ -40,6 +40,14 @@ const DashboardLayout = () => {
           }}
         />
         <Stack.Screen
+          name="Profile"
+          options={{
+            headerShown: true,
+            headerTitle: "",
+            headerTransparent: true,
+          }}
+        />
+        <Stack.Screen
           name="(tabs)"
           options={{
             headerShown: true,
@@ -47,7 +55,8 @@ const DashboardLayout = () => {
             headerTransparent: true,
             headerLeft: () => (
               <TouchableOpacity
-                className="bg-white p-1 rounded-full"
+                className="bg-white rounded-full"
+                onPress={() => router.push("/Profile")}
                 style={{
                   elevation: 5,
                   shadowColor: "#000",
@@ -56,14 +65,24 @@ const DashboardLayout = () => {
                   shadowRadius: 2,
                 }}
               >
-                <Ionicons name="menu" size={28} color="#E85F69" />
+                <Image
+                  source={
+                    user[0].gender === "male"
+                      ? require("../../assets/icons/man.png")
+                      : require("../../assets/icons/woman.png")
+                  }
+                  className="h-10 w-10"
+                />
               </TouchableOpacity>
             ),
             headerRight: () => (
               <View className="flex flex-row items-center justify-center gap-4">
                 <View className="bg-white rounded-full">
                   <TouchableOpacity
-                    onPress={() => router.push("(dashboard)/SearchInput")}
+                    onPress={() => {
+                      setSearchDestination(false);
+                      router.push("(dashboard)/SearchInput");
+                    }}
                     style={{
                       elevation: 5,
                       shadowColor: "#000",
@@ -81,7 +100,7 @@ const DashboardLayout = () => {
                     >
                       {pickUp !== null
                         ? pickUp.display_address
-                        : "Your Pick Up"}
+                        : "Your Start Location"}
                     </Text>
                     <Image
                       source={require("../../assets/icons/searchPin.png")}
