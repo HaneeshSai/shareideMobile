@@ -15,6 +15,7 @@ import { insert } from "../../utils/dbServices";
 import { userStore } from "../../store/userStore";
 import SubmittedModal from "../../components/SubmittedModal";
 import axios from "axios";
+import * as SecureStore from "expo-secure-store";
 const data = [
   {
     id: 1,
@@ -46,9 +47,20 @@ const RiderReg = () => {
   const [contact2, setContact2] = useState("");
   const [vehicle, setVehicle] = useState("");
 
-  const { phone, setSubmittedModal, setUser } = userStore();
+  const { phone, setSubmittedModal, setUser, setIsLoading } = userStore();
 
   const onSubmit = async () => {
+    setIsLoading(true);
+    // console.log({
+    //   name: name,
+    //   phone: phone,
+    //   gender: gender,
+    //   age: parseInt(age),
+    //   type: "rider",
+    //   contacts: `${contact1}+${contact2}`,
+    //   vehicle: vehicle,
+    //   status: "verfied",
+    // });
     try {
       const params = {
         table: "user",
@@ -57,26 +69,30 @@ const RiderReg = () => {
           phone: phone,
           gender: gender,
           age: parseInt(age),
-          type: "rider",
-          contacts: `${contact1}+${contact2}`,
+          userType: "rider",
+          contacts: [contact1, contact2],
           vehicle: vehicle,
-          status: "verfied",
+          verified: true,
         },
       };
-
+      const token = await SecureStore.getItemAsync("userToken");
       const response = await axios.post(
-        `http://192.168.1.16:3000/auth/registerrider`,
-        { data: params.data }
+        `${process.env.EXPO_PUBLIC_API_URL}/auth/riderreg`,
+        { data: params.data, token }
       );
 
       if (response.data.message === "ok") {
         await insert(params);
         setUser(response.data.user);
         setSubmittedModal(true);
+        console.log("inserted data");
+      } else {
+        console.log("cannot insert");
       }
     } catch (error) {
       console.log(error);
     }
+    setIsLoading(false);
   };
 
   return (

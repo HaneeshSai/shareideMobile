@@ -67,7 +67,7 @@ const DashboardLayout = () => {
               >
                 <Image
                   source={
-                    user[0].gender === "male"
+                    user.gender === "male"
                       ? require("../../assets/icons/man.png")
                       : require("../../assets/icons/woman.png")
                   }

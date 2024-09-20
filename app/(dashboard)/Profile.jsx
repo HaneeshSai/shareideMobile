@@ -79,12 +79,12 @@ const Profile = () => {
         <Image
           className="h-20 w-20 mt-10 mb-3"
           source={
-            user[0].gender === "male"
+            user.gender === "male"
               ? require("../../assets/icons/man.png")
               : require("../../assets/icons/woman.png")
           }
         />
-        <Text className="text-xl font-montSemi">{user[0].name}</Text>
+        <Text className="text-xl font-montSemi">{user.name}</Text>
 
         <View
           className="rounded-xl bg-white mt-5  w-[90%] px-4 py-3"
@@ -110,13 +110,13 @@ const Profile = () => {
                 <Text className="text-[16px] font-montSemi ml-6">{e.name}</Text>
                 <Text className="text-sm font-montmed ml-6">
                   {e.value === "contacts"
-                    ? user[0][e.value].split("+").join(", ")
-                    : !user[0][e.value]
+                    ? user[e.value].split("+").join(", ")
+                    : !user[e.value]
                     ? "None"
-                    : user[0][e.value] && isNaN(user[0][e.value])
-                    ? user[0][e.value].charAt(0).toUpperCase() +
-                      user[0][e.value].slice(1)
-                    : user[0][e.value]}
+                    : user[e.value] && isNaN(user[e.value])
+                    ? user[e.value].charAt(0).toUpperCase() +
+                      user[e.value].slice(1)
+                    : user[e.value]}
                 </Text>
               </View>
             </View>

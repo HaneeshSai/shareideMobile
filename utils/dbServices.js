@@ -14,10 +14,10 @@ const createDb = async () => {
         phone TEXT,
         gender TEXT,
         age INTEGER,
-        type TEXT,
+        userType TEXT,
         vehicle TEXT,
         contacts TEXT,
-        status TEXT
+        verified BOOL
       );
 
       CREATE TABLE IF NOT EXISTS rideHistory (
@@ -38,7 +38,6 @@ const createDb = async () => {
 
 const insert = async (params) => {
   const { table, data } = params;
-  console.log("enterinr");
   try {
     const columns = Object.keys(data);
     const values = Object.values(data);
@@ -48,8 +47,10 @@ const insert = async (params) => {
       ", "
     )}) VALUES (${placeholders})`;
     await db.runAsync(query, values);
+    return "ok";
   } catch (error) {
     console.error("Error inserting data:", error);
+    return "error";
   }
 };
 
@@ -69,6 +70,7 @@ const update = async (params) => {
 
     const query = `UPDATE ${table} SET ${setClause} WHERE ${conditionClause}`;
     await db.runAsync(query, [...values, ...conditionValues]);
+    return "ok";
   } catch (error) {
     console.error("Error updating data:", error);
   }

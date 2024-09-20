@@ -19,6 +19,8 @@ const userStore = create((set) => ({
   setDestination: (value) => set({ destination: value }),
   picker: false,
   setPicker: (value) => set({ picker: value }),
+  isLoading: false,
+  setIsLoading: (value) => set({ isLoading: value }),
 }));
 
 module.exports = { userStore };

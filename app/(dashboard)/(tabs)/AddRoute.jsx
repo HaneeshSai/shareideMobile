@@ -6,6 +6,7 @@ import {
   Image,
   ToastAndroid,
   TouchableOpacity,
+  Modal,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -13,6 +14,8 @@ import { userStore } from "../../../store/userStore";
 import { router } from "expo-router";
 import SelectModal from "../../../components/SelectModal";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import axios from "axios";
+import * as SecureStore from "expo-secure-store";
 
 export default function AddRoute() {
   const [selected, setSelected] = useState(0);
@@ -23,6 +26,7 @@ export default function AddRoute() {
     pickUp,
     user,
     setPicker,
+    setIsLoading,
   } = userStore();
 
   const [startDate, setStartDate] = useState("");
@@ -34,6 +38,7 @@ export default function AddRoute() {
   const [datePickType, setDatePickType] = useState("");
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [via, setVia] = useState("");
+  const [showSubmitModal, setSubmitModal] = useState(false);
 
   const handleTime = (e) => {
     // console.log(e);
@@ -66,60 +71,139 @@ export default function AddRoute() {
   };
 
   const handleSubmit = async () => {
-    if (!pickUp) {
-      return ToastAndroid.show(
-        "choose your Pick up location before Submitting",
-        ToastAndroid.SHORT,
-        ToastAndroid.CENTER
-      );
-    } else if (!destination) {
-      return ToastAndroid.show(
-        "choose your Destination location before Submitting",
-        ToastAndroid.SHORT,
-        ToastAndroid.CENTER
-      );
-    } else if (!startTime) {
-      return ToastAndroid.show(
-        "Pick your Starting time before Submitting",
-        ToastAndroid.SHORT,
-        ToastAndroid.CENTER
-      );
-    } else if (!reachTime) {
-      return ToastAndroid.show(
-        "Pick your Reaching time before Submitting",
-        ToastAndroid.SHORT,
-        ToastAndroid.CENTER
-      );
-    } else if (!fare) {
-      return ToastAndroid.show(
-        "Enter your Fare before Submitting",
-        ToastAndroid.SHORT,
-        ToastAndroid.CENTER
-      );
-    }
-    if (selected === 0) {
-      if (!preferred) {
+    try {
+      if (!pickUp) {
         return ToastAndroid.show(
-          "Pick your Preferred Driver gender before Submitting",
+          "choose your Pick up location before Submitting",
+          ToastAndroid.SHORT,
+          ToastAndroid.CENTER
+        );
+      } else if (!destination) {
+        return ToastAndroid.show(
+          "choose your Destination location before Submitting",
+          ToastAndroid.SHORT,
+          ToastAndroid.CENTER
+        );
+      } else if (!startTime) {
+        return ToastAndroid.show(
+          "Pick your Starting time before Submitting",
+          ToastAndroid.SHORT,
+          ToastAndroid.CENTER
+        );
+      } else if (!reachTime) {
+        return ToastAndroid.show(
+          "Pick your Reaching time before Submitting",
+          ToastAndroid.SHORT,
+          ToastAndroid.CENTER
+        );
+      } else if (!fare) {
+        return ToastAndroid.show(
+          "Enter your Fare before Submitting",
           ToastAndroid.SHORT,
           ToastAndroid.CENTER
         );
       }
+      if (selected === 0) {
+        if (!preferred) {
+          return ToastAndroid.show(
+            "Pick your Preferred Driver gender before Submitting",
+            ToastAndroid.SHORT,
+            ToastAndroid.CENTER
+          );
+        }
+        setIsLoading(true);
 
-      console.log(
-        pickUp.display_address,
-        destination.display_address,
-        fare,
-        startTime,
-        reachTime,
-        preferred
+        const data = {
+          start: [pickUp.lat, pickUp.lon],
+          destination: [destination.lat, destination.lon],
+          postedBy: "rider",
+          startTime: startTime,
+          byTime: reachTime,
+          fare: parseInt(fare),
+        };
+
+        console.log(data, await SecureStore.getItemAsync("userToken"))
+
+        const response = await axios.post(
+          `${process.env.EXPO_PUBLIC_API_URL}/user/addroute`,
+          {
+            data,
+            token: await SecureStore.getItemAsync("userToken"),
+          }
+        );
+
+        if (response.data.message === "ok") {
+          setSubmitModal(true);
+          setIsLoading(false);
+        }
+      } else {
+        const data = {
+          start: [pickUp.lat, pickUp.lon],
+          destination: [destination.lat, destination.lon],
+          postedBy: "driver",
+          via: via,
+          startTime: startTime,
+          byTime: reachTime,
+          fare: parseInt(fare),
+        };
+
+        const response = await axios.post(
+          `${process.env.EXPO_PUBLIC_API_URL}/user/addRoute`,
+          {
+            data,
+            token: await SecureStore.getItemAsync("userToken"),
+          }
+        );
+
+        if (response.data.message === "ok") {
+          setSubmitModal(true);
+          setIsLoading(false);
+        }
+      }
+    } catch (error) {
+      console.log(error);
+      setIsLoading(false);
+      return ToastAndroid.show(
+        "Internal Server Error, Try again later",
+        ToastAndroid.SHORT,
+        ToastAndroid.CENTER
       );
-    } else {
     }
   };
 
   return (
     <View className=" py-16 h-full bg-[#FFF5F5]">
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showSubmitModal}
+        onRequestClose={() => setSubmitModal(false)}
+      >
+        <View className="h-full bg-[#ffffffab]">
+          <View className="bg-[#50AD6A] mx-2 flex flex-col items-center py-4 h-[80%] rounded-lg my-[40%] ">
+            <View className="bg-white p-4 rounded-full my-10">
+              <Image
+                source={require("../../../assets/icons/greentick.png")}
+                className="h-20 w-20 relative right-0.5"
+              />
+            </View>
+            <Text className="text-white font-montSemi my-4 text-xl text-center">
+              Your Ride has been Successfully posted
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                setSubmitModal(false);
+                router.push("(tabs)/Registered");
+              }}
+              className="bg-white w-[80%] mt-10 rounded-lg py-1"
+            >
+              <Text className="text-center font-montBold text-xl">
+                Go Back to Home
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
       <DateTimePickerModal
         isVisible={showTimePicker}
         mode="time"
@@ -148,7 +232,8 @@ export default function AddRoute() {
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => {
-            // if (user[0].type === "rider") {
+            // console.log(user);
+            // if (user.userType === "rider") {
             //   ToastAndroid.show(
             //     "Verify as a Driver to Access.",
             //     ToastAndroid.SHORT,

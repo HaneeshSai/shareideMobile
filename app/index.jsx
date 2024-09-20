@@ -31,9 +31,17 @@ const data = [
 
 export default function App() {
   const { user, setUser } = userStore();
+
   const fetchUser = async () => {
     try {
-      createDb();
+      const fetchedUser = await select({
+        table: "user",
+      });
+      console.log(fetchedUser)
+      if (fetchedUser.length > 0) {
+        setUser(fetchedUser[0]);
+        router.push("/(dashboard)/(tabs)/Registered");
+      } else setUser(null);
     } catch (error) {
       console.log(error);
     }
@@ -90,7 +98,16 @@ export default function App() {
             {i === data.length - 1 ? (
               <TouchableOpacity
                 onPress={() => {
-                  router.push("welcome");
+                  // console.log(user);
+                  // if (user) {
+                  //   if (!user.gender) {
+                  //     router.push("(dashboard)/unRegistered");
+                  //   } else {
+                  //     router.push("(dashboard)/(tabs)/Registered");
+                  //   }
+                  // } else {
+                    router.push("welcome");
+                  // }
                 }}
                 className="bg-primary h-10 w-full  flex items-center relative top-5 justify-center rounded-full"
               >
