@@ -98,6 +98,12 @@ const drivers = [
 const FindRide = () => {
   const [selected, setSelected] = useState(0);
   const height = useBottomTabBarHeight();
+
+  
+  const fetchInitialRides = async() => {
+    
+  }
+
   return (
     <SafeAreaView className="pt-20 ">
       <View
