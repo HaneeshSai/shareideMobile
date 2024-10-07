@@ -63,6 +63,7 @@ const riders = [
 
 const Registered = () => {
   const [location, setLocation] = useState(null);
+  const { user } = userStore();
   const deviceHeight = Dimensions.get("window").height;
   const topHeight = useRef(new Animated.Value(0.4 * deviceHeight)).current;
   const bottomHeight = useRef(new Animated.Value(0.6 * deviceHeight)).current;

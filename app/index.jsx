@@ -1,11 +1,18 @@
 import { StatusBar } from "expo-status-bar";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import {
+  Image,
+  Text,
+  ToastAndroid,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { Link, Redirect, router } from "expo-router";
 import Swiper from "react-native-swiper";
 import { select, createDb } from "../utils/dbServices";
 import { useEffect } from "react";
 import { userStore } from "../store/userStore";
 import Toast from "react-native-toast-message";
+
 const data = [
   {
     img: require("../assets/images/one.png"),
@@ -22,6 +29,7 @@ const data = [
     h: "Choose a driver you're comfortable with.",
     l: "Compare driver profiles, ratings, vehicles, and fares to make your selection.",
   },
+
   {
     img: require("../assets/images/four.png"),
     h: "Ride confidently. Track your ride in real-time.",
@@ -31,9 +39,28 @@ const data = [
 
 export default function App() {
   const { user, setUser } = userStore();
+
   const fetchUser = async () => {
     try {
-      createDb();
+      const dbCreation = await createDb();
+      if (dbCreation !== "ok") {
+        return ToastAndroid.show(
+          "Internal Error Occured, Please Try again later",
+          ToastAndroid.SHORT
+        );
+      }
+
+      const fetchedUser = await select({
+        table: "user",
+      });
+      // console.log(fetchedUser);
+      if (fetchedUser.length > 0) {
+        const User = fetchedUser[0];
+        User.contacts = JSON.parse(fetchedUser[0].contacts);
+        console.log(User, "main");
+        setUser(User);
+        router.push("/(dashboard)/(tabs)/Registered");
+      } else setUser(null);
     } catch (error) {
       console.log(error);
     }
@@ -90,7 +117,15 @@ export default function App() {
             {i === data.length - 1 ? (
               <TouchableOpacity
                 onPress={() => {
-                  router.push("welcome");
+                  if (user) {
+                    if (!user.gender) {
+                      router.push("(dashboard)/unRegistered");
+                    } else {
+                      router.push("(dashboard)/(tabs)/Registered");
+                    }
+                  } else {
+                    router.push("welcome");
+                  }
                 }}
                 className="bg-primary h-10 w-full  flex items-center relative top-5 justify-center rounded-full"
               >

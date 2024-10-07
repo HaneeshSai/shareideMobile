@@ -5,7 +5,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { createDb } from "../../utils/dbServices";
 
 const Welcome = () => {
-  
   return (
     <>
       <SafeAreaView className="px-5 py-5  h-full bg-main">
@@ -20,7 +19,6 @@ const Welcome = () => {
           </Text>
           <TouchableOpacity
             onPress={async () => {
-              await createDb();
               router.push("phoneNum");
             }}
             className="w-full bg-primary rounded-lg flex items-center justify-center h-8 my-2"

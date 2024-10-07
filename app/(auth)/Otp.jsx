@@ -1,20 +1,79 @@
 import { View, Text, TouchableOpacity, Modal, Image } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { userStore } from "../../store/userStore";
+import { insert, select, update } from "../../utils/dbServices";
 import { OtpInput } from "react-native-otp-entry";
 import { router } from "expo-router";
+import axios from "axios";
+import * as SecureStore from "expo-secure-store";
 
 const Otp = () => {
-  const { phone } = userStore();
+  const { phone, setIsLoading, setUser } = userStore();
   const [ready, setReady] = useState(false);
   const [otp, setOtp] = useState("");
-  const [success, setSucces] = useState(true);
+  const [success, setSucces] = useState(false);
+
+  useEffect(() => {
+    setIsLoading(false);
+  }, []);
 
   const onSubmit = async () => {
     if (otp.length > 3) {
-      
-      router.push("(dashboard)/unRegistered");
+      setIsLoading(true);
+
+      try {
+        const response = await insert({
+          table: "user",
+          data: {
+            phone: phone,
+          },
+        });
+        if (response === "ok") {
+          const axResponse = await axios.post(
+            `${process.env.EXPO_PUBLIC_API_URL}/auth/login`,
+            {
+              phone: phone,
+            }
+          );
+          if (axResponse.data.message === "ok") {
+            await SecureStore.setItemAsync("userToken", axResponse.data?.token);
+            setIsLoading(false);
+          }
+          if (await axResponse.data.user.verified) {
+            const params = {
+              table: "user",
+              data: {
+                name: axResponse.data.user.name,
+                gender: axResponse.data.user.gender,
+                age: axResponse.data.user.age,
+                userType: axResponse.data.user.userType,
+                contacts: axResponse.data.user.contacts,
+                vehicle: axResponse.data.user.vehicle,
+                verified: axResponse.data.user.verified,
+              },
+              where: {
+                phone: axResponse.data.user.phone,
+              },
+            };
+
+            // console.log(params.where)
+            const updateResponse = await update(params);
+            if (updateResponse === "ok") {
+              // console.log(axResponse.data.user)
+              setUser(axResponse.data.user);
+              router.push("/(dashboard)/(tabs)/Registered");
+              
+            }
+            
+          } else {
+            router.push("/(dashboard)/unRegistered");
+          }
+        }
+      } catch (error) {
+        console.log(error);
+        setIsLoading(false);
+      }
     }
   };
 
@@ -24,9 +83,10 @@ const Otp = () => {
         animationType="slide"
         transparent={true}
         visible={success}
-        onRequestClose={() => success(false)}
+        className="z-10"
+        onRequestClose={() => setSucces(false)}
       >
-        <View className="h-full bg-[#ffffffab]">
+        <View className="h-full z-10 bg-[#ffffffab]">
           <View className="bg-[#50AD6A] mx-1 flex flex-col items-center py-4 h-[80%] rounded-lg my-[40%] ">
             <View className="bg-white p-4 rounded-full my-10">
               <Image

@@ -2,6 +2,7 @@ import { ActivityIndicator } from "react-native";
 import React, { useEffect, useState } from "react";
 import { SplashScreen, Stack } from "expo-router";
 import { useFonts } from "expo-font";
+import Loading from "../components/Loading";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -35,6 +36,7 @@ const RootLayout = () => {
 
   return (
     <>
+      <Loading />
       <Stack>
         <Stack.Screen
           name="index"
