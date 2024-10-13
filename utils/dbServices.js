@@ -6,7 +6,6 @@ const createDb = async () => {
   try {
     await db.execAsync(`
 
-
       CREATE TABLE IF NOT EXISTS user (
         id INTEGER NOT NULL PRIMARY KEY,
         name TEXT,

@@ -8,10 +8,12 @@ import {
 } from "react-native";
 import { Link, Redirect, router } from "expo-router";
 import Swiper from "react-native-swiper";
-import { select, createDb } from "../utils/dbServices";
+import { select, createDb, update } from "../utils/dbServices";
 import { useEffect } from "react";
 import { userStore } from "../store/userStore";
 import Toast from "react-native-toast-message";
+import * as SecureStore from "expo-secure-store";
+import axios from "axios";
 
 const data = [
   {
@@ -38,7 +40,7 @@ const data = [
 ];
 
 export default function App() {
-  const { user, setUser } = userStore();
+  const { user, setUser, setphone } = userStore();
 
   const fetchUser = async () => {
     try {
@@ -56,13 +58,62 @@ export default function App() {
       // console.log(fetchedUser);
       if (fetchedUser.length > 0) {
         const User = fetchedUser[0];
-        User.contacts = JSON.parse(fetchedUser[0].contacts);
-        console.log(User, "main");
-        setUser(User);
-        router.push("/(dashboard)/(tabs)/Registered");
+        if (User.gender) {
+          User.contacts = JSON.parse(fetchedUser[0].contacts);
+          console.log(User, "main");
+          setUser(User);
+          return router.push("/(dashboard)/(tabs)/Registered");
+        } else {
+          getUserFromDb(User.phone);
+          setphone(User.phone);
+        }
       } else setUser(null);
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  const getUserFromDb = async (phone) => {
+    try {
+      const axResponse = await axios.post(
+        `${process.env.EXPO_PUBLIC_API_URL}/auth/login`,
+        {
+          phone: phone,
+        }
+      );
+      if (axResponse.data.message === "ok") {
+        await SecureStore.setItemAsync("userToken", axResponse.data?.token);
+      }
+      if (await axResponse.data.user.verified) {
+        const params = {
+          table: "user",
+          data: {
+            name: axResponse.data.user.name,
+            gender: axResponse.data.user.gender,
+            age: axResponse.data.user.age,
+            userType: axResponse.data.user.userType,
+            contacts: axResponse.data.user.contacts,
+            vehicle: axResponse.data.user.vehicle,
+            verified: axResponse.data.user.verified,
+          },
+          where: {
+            phone: axResponse.data.user.phone,
+          },
+        };
+
+        // console.log(params.where)
+        const updateResponse = await update(params);
+        if (updateResponse === "ok") {
+          // console.log(axResponse.data.user)
+          setUser(axResponse.data.user);
+          router.push("/(dashboard)/(tabs)/Registered");
+        }
+      } else {
+        router.push("/(dashboard)/unRegistered");
+      }
+    } catch (error) {
+      console.log(error);
+      ToastAndroid.show("Internal Server Error", ToastAndroid.SHORT);
     }
   };
 

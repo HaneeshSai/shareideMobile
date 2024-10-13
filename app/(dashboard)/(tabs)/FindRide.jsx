@@ -5,11 +5,14 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  ToastAndroid,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import RideCard from "../../../components/RideCard";
+import axios from "axios";
+import Toast from "react-native-toast-message";
 
 const riders = [
   {
@@ -98,8 +101,52 @@ const drivers = [
 const FindRide = () => {
   const [selected, setSelected] = useState(0);
   const height = useBottomTabBarHeight();
+  const [results, setResults] = useState([]);
+  const [searchInput, setSearchInput] = useState("");
+  const [searching, setSearching] = useState(false);
+  const [initRides, setInitRides] = useState([]);
+
+  const getInitRides = async () => {
+    const coords = [17.41628932449812, 78.50900937535476];
+    try {
+      const response = await axios.post(
+        `${process.env.EXPO_PUBLIC_API_URL}/user/getInitRides`,
+        { coords }
+      );
+      setInitRides(response.data.rides);
+    } catch (error) {
+      console.log(error);
+      ToastAndroid.show("Internal Server Error", ToastAndroid.SHORT);
+    }
+  };
+
+  const handleSearch = async () => {
+    try {
+      const response = await axios.post(
+        `${process.env.EXPO_PUBLIC_API_URL}/user/get-searched-rides`,
+        {
+          query: searchInput,
+        }
+      );
+      setResults(response.data.results);
+    } catch (error) {
+      console.log(error);
+      ToastAndroid.show("Internal Server Error", ToastAndroid.SHORT);
+    }
+  };
+
+  useEffect(() => {
+    if (searchInput.length >= 2) {
+      handleSearch();
+    }
+  }, [searchInput]);
+
+  useEffect(() => {
+    getInitRides();
+  }, []);
+
   return (
-    <SafeAreaView className="pt-20 ">
+    <SafeAreaView className="pt-20 bg-[#FFF5F5] ">
       <View
         style={{
           elevation: 7,
@@ -115,6 +162,8 @@ const FindRide = () => {
             placeholderTextColor="rgba(0, 0, 0, 0.3)"
             className="font-montSemi w-[85%]"
             placeholder="Destination Location"
+            value={searchInput}
+            onChangeText={(text) => setSearchInput(text)}
           />
         </View>
         <Image
@@ -156,13 +205,17 @@ const FindRide = () => {
           }}
           className="h-[78%]"
         >
-          {selected === 0
-            ? riders.map((e, i) => (
-                <RideCard key={i} e={e} i={i} len={riders.length} />
-              ))
-            : drivers.map((e, i) => (
-                <RideCard e={e} key={i} i={i} len={drivers.length} />
-              ))}
+          {selected === 1
+            ? results
+                .filter((e) => e.postedBy === "driver")
+                .map((e, i) => (
+                  <RideCard key={i} e={e} i={i} len={riders.length} />
+                ))
+            : results
+                .filter((e) => e.postedBy !== "driver")
+                .map((e, i) => (
+                  <RideCard e={e} key={i} i={i} len={drivers.length} />
+                ))}
         </ScrollView>
       </View>
     </SafeAreaView>

@@ -9,12 +9,14 @@ import {
   Dimensions,
   ScrollView,
   TouchableOpacity,
+  ToastAndroid,
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { userStore } from "../../../store/userStore";
 import axios from "axios";
+import RideCard from "../../../components/RideCard";
 
 const drivers = [
   { longitude: 78.51, latitude: 17.4163 },
@@ -23,7 +25,7 @@ const drivers = [
   { longitude: 78.514, latitude: 17.4163 },
 ];
 
-const riders = [
+const riderrs = [
   {
     from: "Parsigutta",
     to: "Ghatkesar",
@@ -69,6 +71,7 @@ const Registered = () => {
   const bottomHeight = useRef(new Animated.Value(0.6 * deviceHeight)).current;
   const pan = useRef(new Animated.ValueXY()).current;
   const [isDividerClicked, setIsDividerClicked] = useState(false);
+  const [riders, setRiders] = useState([]);
 
   useEffect(() => {
     (async () => {
@@ -81,7 +84,23 @@ const Registered = () => {
       let location = await Location.getCurrentPositionAsync({});
       setLocation(location);
     })();
+
+    getInitRides();
   }, []);
+
+  const getInitRides = async () => {
+    const coords = [17.41628932449812, 78.50900937535476];
+    try {
+      const response = await axios.post(
+        `${process.env.EXPO_PUBLIC_API_URL}/user/getInitRides`,
+        { coords }
+      );
+      setRiders(response.data.rides);
+    } catch (error) {
+      console.log(error);
+      ToastAndroid.show("Internal Server Error", ToastAndroid.SHORT);
+    }
+  };
 
   const panResponder = useRef(
     PanResponder.create({
@@ -103,6 +122,18 @@ const Registered = () => {
       },
     })
   ).current;
+
+  function formatDate(dateStr) {
+    const date = new Date(dateStr);
+    const month = date.toLocaleString("en-US", { month: "short" });
+    const day = date.getDate();
+    let hours = date.getHours();
+    const ampm = hours >= 12 ? "pm" : "am";
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    return `${month}-${day}, ${hours}:${minutes} ${ampm}`;
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -130,22 +161,24 @@ const Registered = () => {
                 style={styles.markerImage}
               />
             </Marker>
-            {drivers.map((e, i) => (
-              <Marker
-                key={i}
-                coordinate={{
-                  longitude: e.longitude,
-                  latitude: e.latitude,
-                }}
-                title=""
-                onPress={() => console.log("clicked on driver")}
-              >
-                <Image
-                  style={styles.markerImage}
-                  source={require("../../../assets/icons/scooter.png")}
-                />
-              </Marker>
-            ))}
+            {riders
+              .filter((e) => e.postedBy === "driver")
+              .map((e, i) => (
+                <Marker
+                  key={i}
+                  coordinate={{
+                    longitude: Number(e.start[1]),
+                    latitude: Number(e.start[0]),
+                  }}
+                  title=""
+                  onPress={() => console.log("clicked on driver")}
+                >
+                  <Image
+                    style={styles.markerImage}
+                    source={require("../../../assets/icons/scooter.png")}
+                  />
+                </Marker>
+              ))}
           </MapView>
         ) : null}
       </Animated.View>
@@ -169,42 +202,7 @@ const Registered = () => {
           <View className="relative flex items-center flex-col">
             <ScrollView className="w-full mb-[110px]">
               {riders.map((e, i) => (
-                <View
-                  key={i}
-                  style={{ elevation: 5 }}
-                  className={`flex w-[96%] relative left-4 gap-2 h-16 bg-white my-1 rounded-xl items-center pb-2 flex-row ${
-                    i === riders.length - 1 ? "mb-5" : ""
-                  }`}
-                >
-                  <Image
-                    source={
-                      e.gender === "male"
-                        ? require("../../../assets/images/boy.png")
-                        : require("../../../assets/images/girl.png")
-                    }
-                    className="h-10 w-10"
-                  />
-                  <View className="flex w-[80%] justify-between flex-row">
-                    <View className="">
-                      <Text className="font-montmed">From</Text>
-                      <Text className="font-montSemi text-[15px]">
-                        {e.from}
-                      </Text>
-                    </View>
-                    <View className="-mt-1">
-                      <Text className="font-montBold text-[18px] text-center">
-                        ₹ {e.fare}
-                      </Text>
-                      <Text className="font-montmed">by {e.time}</Text>
-                    </View>
-                    <View>
-                      <Text className="font-montmed text-right">To</Text>
-                      <Text className="font-montSemi text-[15px] text-right">
-                        {e.to}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
+                <RideCard key={i} e={e} i={i} len={riders.length} />
               ))}
             </ScrollView>
           </View>

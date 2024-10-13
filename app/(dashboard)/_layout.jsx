@@ -99,7 +99,7 @@ const DashboardLayout = () => {
                       } px-2 flex-1`}
                     >
                       {pickUp !== null
-                        ? pickUp.display_address
+                        ? pickUp.display_place
                         : "Your Start Location"}
                     </Text>
                     <Image

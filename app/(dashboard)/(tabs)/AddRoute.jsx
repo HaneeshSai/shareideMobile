@@ -114,8 +114,12 @@ export default function AddRoute() {
         setIsLoading(true);
 
         const data = {
-          start: [pickUp.lat, pickUp.lon],
-          destination: [destination.lat, destination.lon],
+          start: [pickUp.lat, pickUp.lon, pickUp.display_place],
+          destination: [
+            destination.lat,
+            destination.lon,
+            destination.display_place,
+          ],
           postedBy: "rider",
           startTime: startTime,
           byTime: reachTime,
@@ -136,8 +140,12 @@ export default function AddRoute() {
         }
       } else {
         const data = {
-          start: [pickUp.lat, pickUp.lon],
-          destination: [destination.lat, destination.lon],
+          start: [pickUp.lat, pickUp.lon, pickUp.display_place],
+          destination: [
+            destination.lat,
+            destination.lon,
+            destination.display_place,
+          ],
           postedBy: "driver",
           via: via,
           startTime: startTime,
@@ -281,7 +289,7 @@ export default function AddRoute() {
             } `}
           >
             {destination !== null && destination !== ""
-              ? destination.display_address
+              ? destination.display_place
               : "Destination Location"}
           </Text>
         </TouchableOpacity>

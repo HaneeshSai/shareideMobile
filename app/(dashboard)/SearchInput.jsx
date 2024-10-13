@@ -79,14 +79,14 @@ const SearchInput = () => {
               numberOfLines={1}
               className="font-montSemi py-[5px] px-0.5 w-[80%]"
             >
-              {destination.display_address}
+              {destination.display_place}
             </Text>
           ) : !searchDestination && pickUp ? (
             <Text
               numberOfLines={1}
               className="font-montSemi py-[5px] px-0.5 w-[80%]"
             >
-              {pickUp.display_address}
+              {pickUp.display_place}
             </Text>
           ) : (
             <TextInput
