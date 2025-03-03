@@ -13,101 +13,26 @@ import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import RideCard from "../../../components/RideCard";
 import axios from "axios";
 import Toast from "react-native-toast-message";
-
-const riders = [
-  {
-    from: "Parsigutta",
-    to: "Ghatkesar",
-    fare: 150,
-    time: "3:40pm",
-    gender: "male",
-  },
-  {
-    from: "Parsigutta",
-    to: "Ghatkesar",
-    fare: 150,
-    time: "3:40pm",
-    gender: "male",
-  },
-  {
-    from: "warsaiguda",
-    to: "Ghatkesar",
-    fare: 150,
-    time: "3:40pm",
-    gender: "male",
-  },
-  {
-    from: "Parsigutta",
-    to: "Ghatkesar",
-    fare: 150,
-    time: "3:40pm",
-    gender: "male",
-  },
-  {
-    from: "Parsigutta",
-    to: "Ghatkesar",
-    fare: 150,
-    time: "3:40pm",
-    gender: "male",
-  },
-  {
-    from: "warsaiguda",
-    to: "Ghatkesar",
-    fare: 150,
-    time: "3:40pm",
-    gender: "male",
-  },
-];
-
-const drivers = [
-  {
-    from: "Parsigutta",
-    to: "Ghatkesar",
-    fare: 150,
-    via: "tarnaka",
-  },
-  {
-    from: "Parsigutta",
-    to: "Ghatkesar",
-    fare: 150,
-    via: "tarnaka",
-  },
-  {
-    from: "warsaiguda",
-    to: "Ghatkesar",
-    fare: 150,
-    via: "tarnaka",
-  },
-  {
-    from: "Parsigutta",
-    to: "Ghatkesar",
-    fare: 150,
-    via: "tarnaka",
-  },
-  {
-    from: "Parsigutta",
-    to: "Ghatkesar",
-    fare: 150,
-    via: "tarnaka",
-  },
-  {
-    from: "warsaiguda",
-    to: "Ghatkesar",
-    fare: 150,
-    via: "tarnaka",
-  },
-];
+import { userStore } from "../../../store/userStore";
+import { router } from "expo-router";
 
 const FindRide = () => {
   const [selected, setSelected] = useState(0);
   const height = useBottomTabBarHeight();
   const [results, setResults] = useState([]);
-  const [searchInput, setSearchInput] = useState("");
   const [searching, setSearching] = useState(false);
   const [initRides, setInitRides] = useState([]);
+  const {
+    setSearchDestination,
+    searchDestination,
+    refresh,
+    destination,
+    pickUp,
+  } = userStore();
 
   const getInitRides = async () => {
-    const coords = [17.41628932449812, 78.50900937535476];
+    const coords = [pickUp.lat, pickUp.lon];
+    setSearching(false);
     try {
       const response = await axios.post(
         `${process.env.EXPO_PUBLIC_API_URL}/user/getInitRides`,
@@ -121,14 +46,18 @@ const FindRide = () => {
   };
 
   const handleSearch = async () => {
+    if (!pickUp || !destination) return;
+
     try {
       const response = await axios.post(
         `${process.env.EXPO_PUBLIC_API_URL}/user/get-searched-rides`,
         {
-          query: searchInput,
+          start: [pickUp.lat, pickUp.lon],
+          destination: [destination.lat, destination.lon],
         }
       );
-      setResults(response.data.results);
+      setSearching(true);
+      setResults(response.data.result);
     } catch (error) {
       console.log(error);
       ToastAndroid.show("Internal Server Error", ToastAndroid.SHORT);
@@ -136,14 +65,13 @@ const FindRide = () => {
   };
 
   useEffect(() => {
-    if (searchInput.length >= 2) {
-      handleSearch();
-    }
-  }, [searchInput]);
+    if (destination) handleSearch();
+    else getInitRides();
+  }, [destination, refresh]);
 
   useEffect(() => {
     getInitRides();
-  }, []);
+  }, [refresh]);
 
   return (
     <SafeAreaView className="pt-20 bg-[#FFF5F5] ">
@@ -151,28 +79,37 @@ const FindRide = () => {
         style={{
           elevation: 7,
         }}
-        className="flex ml-9 flex-row px-3 py-1.5 rounded-full items-center w-[80%] bg-white"
+        className="flex ml-6 mb-7 flex-row px-3 py-2 rounded-full items-center w-[85%] bg-white"
       >
-        <View className="flex flex-1 flex-row items-center gap-2">
+        <TouchableOpacity
+          onPress={() => {
+            setSearchDestination(true);
+            router.push("(dashboard)/SearchInput");
+          }}
+          className="flex flex-1 flex-row items-center gap-2"
+        >
           <Image
-            source={require("../../../assets/icons/redDot.png")}
+            source={require("../../../assets/icons/rec.png")}
             className="h-5 w-5"
           />
-          <TextInput
-            placeholderTextColor="rgba(0, 0, 0, 0.3)"
-            className="font-montSemi w-[85%]"
-            placeholder="Destination Location"
-            value={searchInput}
-            onChangeText={(text) => setSearchInput(text)}
-          />
-        </View>
+          <Text
+            numberOfLines={1}
+            className={`font-montSemi w-[85%] ${
+              destination ? "text-black" : "text-[#00000057]"
+            } `}
+          >
+            {destination !== null && destination !== ""
+              ? destination.display_place
+              : "Destination Location"}
+          </Text>
+        </TouchableOpacity>
         <Image
           source={require("../../../assets/icons/searchPin.png")}
-          className="h-6 w-6"
+          className="h-5 w-5"
         />
       </View>
 
-      <View className="flex mx-14 my-4 flex-row justify-between">
+      <View className="flex mx-14 mb-4 flex-row justify-between">
         <TouchableOpacity
           onPress={() => setSelected(1)}
           className="flex flex-col items-center"
@@ -199,23 +136,34 @@ const FindRide = () => {
         </TouchableOpacity>
       </View>
       <View>
+        {!searching ? (
+          <Text className="text-center text-lg font-montSemi">
+            Nearest Rides from your Pick up
+          </Text>
+        ) : null}
         <ScrollView
           style={{
             paddingBottom: height,
           }}
-          className="h-[78%]"
+          className="h-[72%]"
         >
-          {selected === 1
+          {!searching && selected === 1
+            ? initRides
+                .filter((e) => e.postedBy === "driver")
+                .map((e, i) => <RideCard key={i} e={e} i={i} />)
+            : !searching && selected === 0
+            ? initRides
+                .filter((e) => e.postedBy !== "driver")
+                .map((e, i) => <RideCard key={i} e={e} i={i} />)
+            : searching && selected === 1
             ? results
                 .filter((e) => e.postedBy === "driver")
-                .map((e, i) => (
-                  <RideCard key={i} e={e} i={i} len={riders.length} />
-                ))
-            : results
+                .map((e, i) => <RideCard key={i} e={e} i={i} />)
+            : searching && selected === 0
+            ? results
                 .filter((e) => e.postedBy !== "driver")
-                .map((e, i) => (
-                  <RideCard e={e} key={i} i={i} len={drivers.length} />
-                ))}
+                .map((e, i) => <RideCard e={e} key={i} i={i} />)
+            : null}
         </ScrollView>
       </View>
     </SafeAreaView>

@@ -60,7 +60,6 @@ export default function App() {
         const User = fetchedUser[0];
         if (User.gender) {
           User.contacts = JSON.parse(fetchedUser[0].contacts);
-          console.log(User, "main");
           setUser(User);
           return router.push("/(dashboard)/(tabs)/Registered");
         } else {

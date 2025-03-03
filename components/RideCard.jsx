@@ -17,15 +17,15 @@ export default function RideCard({ e, i, len }) {
     <View
       key={i}
       style={{ elevation: 5 }}
-      className={`flex gap-2 w-[96%] relative left-4 h-16 bg-white my-1 ${
-        i === len - 1 ? "mb-3" : ""
-      } rounded-xl items-center pb-2 flex-row`}
+      className={`flex gap-2 w-[96%] relative left-4 h-16 bg-white my-1 rounded-xl items-center pb-2 flex-row`}
     >
       <Image
         source={
           e.postedBy === "driver"
             ? require("../assets/icons/scootericon.png")
-            : require("../assets/images/girl.png")
+            : e.gender === "female"
+            ? require("../assets/images/girl.png")
+            : require("../assets/images/boy.png")
         }
         className="h-10 w-10"
       />

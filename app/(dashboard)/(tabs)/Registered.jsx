@@ -18,54 +18,9 @@ import { userStore } from "../../../store/userStore";
 import axios from "axios";
 import RideCard from "../../../components/RideCard";
 
-const drivers = [
-  { longitude: 78.51, latitude: 17.4163 },
-  { longitude: 78.512, latitude: 17.4163 },
-  { longitude: 78.513, latitude: 17.4163 },
-  { longitude: 78.514, latitude: 17.4163 },
-];
-
-const riderrs = [
-  {
-    from: "Parsigutta",
-    to: "Ghatkesar",
-    fare: 150,
-    time: "3:40pm",
-    gender: "male",
-  },
-  {
-    from: "Parsigutta",
-    to: "Ghatkesar",
-    fare: 150,
-    time: "3:40pm",
-    gender: "female",
-  },
-  {
-    from: "Parsigutta",
-    to: "Ghatkesar",
-    fare: 150,
-    time: "3:40pm",
-    gender: "male",
-  },
-  {
-    from: "Parsigutta",
-    to: "Ghatkesar",
-    fare: 150,
-    time: "3:40pm",
-    gender: "male",
-  },
-  {
-    from: "Parsigutta",
-    to: "Ghatkesar",
-    fare: 150,
-    time: "3:40pm",
-    gender: "male",
-  },
-];
-
 const Registered = () => {
   const [location, setLocation] = useState(null);
-  const { user } = userStore();
+  const { user, pickUp, setPickUp, refresh } = userStore();
   const deviceHeight = Dimensions.get("window").height;
   const topHeight = useRef(new Animated.Value(0.4 * deviceHeight)).current;
   const bottomHeight = useRef(new Animated.Value(0.6 * deviceHeight)).current;
@@ -84,12 +39,10 @@ const Registered = () => {
       let location = await Location.getCurrentPositionAsync({});
       setLocation(location);
     })();
-
-    getInitRides();
   }, []);
 
   const getInitRides = async () => {
-    const coords = [17.41628932449812, 78.50900937535476];
+    const coords = [location?.coords.latitude, location?.coords.longitude];
     try {
       const response = await axios.post(
         `${process.env.EXPO_PUBLIC_API_URL}/user/getInitRides`,
@@ -123,17 +76,28 @@ const Registered = () => {
     })
   ).current;
 
-  function formatDate(dateStr) {
-    const date = new Date(dateStr);
-    const month = date.toLocaleString("en-US", { month: "short" });
-    const day = date.getDate();
-    let hours = date.getHours();
-    const ampm = hours >= 12 ? "pm" : "am";
-    hours = hours % 12;
-    hours = hours ? hours : 12;
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-    return `${month}-${day}, ${hours}:${minutes} ${ampm}`;
-  }
+  useEffect(() => {
+    if (location) {
+      getStartLocation(); // Now it will only run after location is set
+      getInitRides();
+    }
+  }, [location, refresh]);
+
+  const getStartLocation = async () => {
+    try {
+      const response = await axios.get(
+        `https://us1.locationiq.com/v1/reverse?key=pk.01d00380bf78099702d0e45211664b82&lat=${location?.coords?.latitude}&lon=${location?.coords?.longitude}&format=json`
+      );
+      setPickUp({
+        lat: location.coords.latitude,
+        lon: location.coords.longitude,
+        display_place: response.data?.display_name.split(",")[0],
+      });
+    } catch (error) {
+      console.log(error);
+      ToastAndroid.show("Internal Server Error", ToastAndroid.SHORT);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -190,7 +154,7 @@ const Registered = () => {
           zIndex: 20,
         }}
       >
-        <View className="h-full bg-[#FBEDED] rounded-tl-3xl z-20 rounded-tr-3xl">
+        <View className="h-full bg-[#FFF5F5] rounded-tl-3xl z-20 rounded-tr-3xl">
           <View
             style={[
               styles.divider,
@@ -200,7 +164,7 @@ const Registered = () => {
           ></View>
           <Text className="font-montSemi ml-4 text-xl">Riders Near You</Text>
           <View className="relative flex items-center flex-col">
-            <ScrollView className="w-full mb-[110px]">
+            <ScrollView className="w-full mb-[135px]">
               {riders.map((e, i) => (
                 <RideCard key={i} e={e} i={i} len={riders.length} />
               ))}

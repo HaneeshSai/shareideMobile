@@ -21,10 +21,9 @@ export default function AddRoute() {
   const [selected, setSelected] = useState(0);
   const {
     setSearchDestination,
-    searchDestination,
+    setRefresh,
     destination,
     pickUp,
-    user,
     setPicker,
     setIsLoading,
   } = userStore();
@@ -175,6 +174,8 @@ export default function AddRoute() {
         ToastAndroid.CENTER
       );
     }
+
+    setRefresh();
   };
 
   return (

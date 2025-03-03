@@ -21,6 +21,8 @@ const userStore = create((set) => ({
   setPicker: (value) => set({ picker: value }),
   isLoading: false,
   setIsLoading: (value) => set({ isLoading: value }),
+  refresh: false,
+  setRefresh: () => set((state) => ({ refresh: !state.refresh })),
 }));
 
 module.exports = { userStore };
